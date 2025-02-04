@@ -1,0 +1,115 @@
+CREATE DATABASE attendance_system;
+USE attendance_system;
+
+-- Profiles table for storing user details (both students and teachers)
+CREATE TABLE profiles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    email VARCHAR(255) UNIQUE NOT NULL,
+    full_name VARCHAR(255) NOT NULL,
+    role ENUM('student', 'teacher') NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- Students table
+CREATE TABLE students (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    ERPid INT UNIQUE NOT NULL,
+    year YEAR NOT NULL,
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    profile_id INT UNIQUE,  
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE SET NULL
+);
+
+-- Teachers table
+CREATE TABLE teachers (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    teacher_name VARCHAR(255) NOT NULL,
+    teacher_email VARCHAR(255) UNIQUE NOT NULL,
+    year YEAR NOT NULL, -- Ensures each teacher can only teach one subject per year
+    subject VARCHAR(255) NOT NULL, -- Directly link a teacher to a subject
+    profile_id INT UNIQUE,  
+    FOREIGN KEY (profile_id) REFERENCES profiles(id) ON DELETE SET NULL
+);
+
+-- Subjects table
+CREATE TABLE subjects (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(255) NOT NULL,
+    code VARCHAR(50) UNIQUE NOT NULL,
+    year YEAR NOT NULL,
+    teacher_id INT, -- Links a subject to a teacher
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE SET NULL
+);
+
+-- Classes table (Individual sessions of subjects)
+CREATE TABLE classes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    room_code VARCHAR(50) NOT NULL,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    is_active BOOLEAN DEFAULT TRUE,
+    created_by INT,  -- Teacher who created the class
+    subject_id INT NOT NULL,
+    FOREIGN KEY (created_by) REFERENCES teachers(id) ON DELETE SET NULL,
+    FOREIGN KEY (subject_id) REFERENCES subjects(id) ON DELETE CASCADE
+);
+
+-- Student-Classes Enrollment Table (Many-to-Many)
+CREATE TABLE student_classes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_id INT NOT NULL,
+    class_id INT NOT NULL,
+    FOREIGN KEY (student_id) REFERENCES students(id) ON DELETE CASCADE,
+    FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
+);
+
+-- Teacher-Classes Mapping (Many-to-Many)
+CREATE TABLE teacher_classes (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    teacher_id INT NOT NULL,
+    class_id INT NOT NULL,
+    FOREIGN KEY (teacher_id) REFERENCES teachers(id) ON DELETE CASCADE,
+    FOREIGN KEY (class_id) REFERENCES classes(id) ON DELETE CASCADE
+);
+
+-- Attendance Table
+CREATE TABLE attendance (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    student_class_id INT NOT NULL,
+    marked_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    date TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    present BOOLEAN NOT NULL DEFAULT FALSE,
+    marked_by INT, -- Teacher who marked attendance
+    FOREIGN KEY (student_class_id) REFERENCES student_classes(id) ON DELETE CASCADE,
+    FOREIGN KEY (marked_by) REFERENCES teachers(id) ON DELETE SET NULL
+);
+
+
+INSERT INTO `teacher` (`teachername`, `email`, `subject`, `year`) VALUES
+('Alice Johnson', 'alice.johnson@example.com', 'DATA STRUCTURES AND ALGORITHMS - I', 'Second Year'),
+('Bob Smith', 'bob.smith@example.com', 'SOFTWARE ENGINEERING', 'Second Year'),
+('Charlie Davis', 'charlie.davis@example.com', 'GROUPS AND CODING THEORY', 'Second Year'),
+('David White', 'david.white@example.com', 'NUMERICAL TECHNIQUES', 'Second Year'),
+('Eve Brown', 'eve.brown@example.com', 'MATHEMATICS PRACTICAL: PYTHON PROGRAMMING LANGUAGE I', 'Second Year'),
+('Frank Harris', 'frank.harris@example.com', 'MICROCONTROLLER ARCHITECTURE & PROGRAMMING', 'Second Year'),
+('Grace Wilson', 'grace.wilson@example.com', 'DIGITAL COMMUNICATION AND NETWORKING', 'Second Year'),
+('Hank Lewis', 'hank.lewis@example.com', 'PRACTICAL COURSE I', 'Second Year'),
+
+('Ivy Clark', 'ivy.clark@example.com', 'OPERATING SYSTEMS - I', 'Third Year'),
+('Jack Hall', 'jack.hall@example.com', 'COMPUTER NETWORKS - II', 'Third Year'),
+('Karen Young', 'karen.young@example.com', 'WEB TECHNOLOGIES - I', 'Third Year'),
+('Leo King', 'leo.king@example.com', 'FOUNDATIONS OF DATA SCIENCE', 'Third Year'),
+('Mona Scott', 'mona.scott@example.com', 'OBJECT ORIENTED PROGRAMMING USING JAVA-I', 'Third Year'),
+('Nathan Green', 'nathan.green@example.com', 'THEORETICAL COMPUTER SCIENCE', 'Third Year'),
+('Olivia Adams', 'olivia.adams@example.com', 'PYTHON PROGRAMMING', 'Third Year'),
+('Paul Baker', 'paul.baker@example.com', 'BLOCKCHAIN TECHNOLOGY', 'Third Year'),
+
+('Quinn Foster', 'quinn.foster@example.com', 'INTRODUCTION TO PROGRAMMING', 'First Year'),
+('Rachel Brooks', 'rachel.brooks@example.com', 'COMPUTER ORGANIZATION', 'First Year'),
+('Samuel Reed', 'samuel.reed@example.com', 'DISCRETE MATHEMATICS', 'First Year'),
+('Tracy Evans', 'tracy.evans@example.com', 'LINEAR ALGEBRA', 'First Year'),
+('Uma Carter', 'uma.carter@example.com', 'MATHEMATICS PRACTICAL: PYTHON PROGRAMMING LANGUAGE I', 'First Year'),
+('Victor Simmons', 'victor.simmons@example.com', 'ELECTRONICS FUNDAMENTALS', 'First Year'),
+('Wendy Torres', 'wendy.torres@example.com', 'BASICS OF DIGITAL SYSTEMS', 'First Year'),
+('Xavier Hayes', 'xavier.hayes@example.com', 'PRACTICAL COURSE I', 'First Year');
